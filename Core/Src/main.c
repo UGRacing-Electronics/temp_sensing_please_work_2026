@@ -51,8 +51,9 @@ CAN_RxHeaderTypeDef RxHeader;	//Instance of the RxHeader structure
 
 uint8_t TxData[8];				//TxData buffer
 uint8_t RxData[8];				//RxData buffer
-
+uint16_t ADC_Array[12];
 uint32_t TxMailbox;				//TxMailbox address (Handled by HAL)
+uint16_t max=0;
 
 uint8_t RxReady = 0;			//Flag indicating that a new CAN message is ready
 
@@ -142,7 +143,42 @@ uint8_t CAN_ReadMessage(CAN_Message_t *msg)
 
     return 1;
 }
-volatile uint32_t resetCause = 0;
+void ADC_Update(uint16_t ADC_Array[])
+{
+    for (int i = 0; i < 2; i++)
+    {
+        // Set mux state
+        HAL_GPIO_WritePin(GPIOA,
+                          GPIO_PIN_4 | GPIO_PIN_5 | GPIO_PIN_6,
+                          i ? GPIO_PIN_SET : GPIO_PIN_RESET);
+
+        HAL_Delay(10); // let mux settle
+
+        HAL_ADC_Start(&hadc1);
+
+        for (int j = 0; j < 6; j++)
+        {
+            HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
+            ADC_Array[j + i * 6] = HAL_ADC_GetValue(&hadc1);
+        }
+
+        HAL_ADC_Stop(&hadc1);
+    }
+}
+uint16_t Max_Adc(uint16_t ADC_Array[])
+{
+    uint16_t max = ADC_Array[0];
+
+    for(int i = 1; i < 12; i++)
+    {
+        if(ADC_Array[i] > max)
+        {
+            max = ADC_Array[i];
+        }
+    }
+
+    return max;
+}
 /* USER CODE END 0 */
 
 /**
@@ -152,7 +188,6 @@ volatile uint32_t resetCause = 0;
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	volatile uint32_t resetCause = RCC->CSR;
 
 	__HAL_RCC_CLEAR_RESET_FLAGS();
   /* USER CODE END 1 */
@@ -183,10 +218,6 @@ int main(void)
   TxHeader.IDE = CAN_ID_STD; 	//CAN ID length (Standard or Extended)
   TxHeader.RTR = CAN_RTR_DATA; 	//Request or Data frame
   TxHeader.StdId = 0x123; 		//Device CAN ID
-
-  /* CAN TX data for testing */
-  TxData[0] = 0xAB;
-  TxData[1] = 0xCD;
 
   if (HAL_CAN_Start(&hcan1) != HAL_OK)
   {
@@ -255,24 +286,14 @@ int main(void)
 	          TxData,
 	          &TxMailbox);
 	  }
-//	  TxData[0] = 0xAB;
-//	  TxData[1] = 0xCD;
-//	  HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox);
-//	  HAL_CAN_AddTxMessage(&hcan2, &TxHeader, TxData, &TxMailbox);
 	  HAL_Delay(100);
 
-	  HAL_ADC_Start(&hadc1);
-	  HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
-	  adcValue = HAL_ADC_GetValue(&hadc1);
-	  HAL_ADC_Stop(&hadc1);
 
-
+	  ADC_Update(ADC_Array);
+	  max = Max_Adc(ADC_Array);
 	  TxData[1] = adcValue & 0xFF;
       TxData[0] = (adcValue >> 8) & 0x0F;
 	  HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox);
-//	  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2,0);
-//	  HAL_Delay(1000);
-//	  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2,1);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
