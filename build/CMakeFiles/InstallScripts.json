@@ -1,0 +1,8 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/weinkyls/repositories/temp_sensing_please_work_2026/build/cmake_install.cmake",
+		"/home/weinkyls/repositories/temp_sensing_please_work_2026/build/cmake/stm32cubemx/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

@@ -1,0 +1,6 @@
+/home/weinkyls/repositories/temp_sensing_please_work_2026/build/CMakeFiles/ECU_please_work.dir
+/home/weinkyls/repositories/temp_sensing_please_work_2026/build/CMakeFiles/edit_cache.dir
+/home/weinkyls/repositories/temp_sensing_please_work_2026/build/CMakeFiles/rebuild_cache.dir
+/home/weinkyls/repositories/temp_sensing_please_work_2026/build/cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir
+/home/weinkyls/repositories/temp_sensing_please_work_2026/build/cmake/stm32cubemx/CMakeFiles/edit_cache.dir
+/home/weinkyls/repositories/temp_sensing_please_work_2026/build/cmake/stm32cubemx/CMakeFiles/rebuild_cache.dir

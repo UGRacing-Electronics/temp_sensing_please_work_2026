@@ -271,29 +271,58 @@ int main(void)
 
 	  CAN_Message_t msg;
 
-	  if(CAN_ReadMessage(&msg))
-	  {
-	      TxData[0] = msg.data[1];
-	      TxData[1] = msg.data[0];
-//	      HAL_CAN_AddTxMessage(
-//	      	          &hcan2,
-//	      	          &TxHeader,
-//	      	          TxData,
-//	      	          &TxMailbox);
-	      HAL_CAN_AddTxMessage(
-	          &hcan1,
-	          &TxHeader,
-	          TxData,
-	          &TxMailbox);
+	  if(CAN_ReadMessage(&msg)) {
+      // --- interrupt handler ---
+      // --- code from before ---
+      // TxData[0] = msg.data[1];
+      // TxData[1] = msg.data[0];
+      // //HAL_CAN_AddTxMessage(
+      //   //&hcan2,
+      //   //&TxHeader,
+      //   //TxData,
+      //   //&TxMailbox);
+      // HAL_CAN_AddTxMessage(
+      //   &hcan1,
+      //   &TxHeader,
+      //   TxData,
+      //  &TxMailbox);
+
+      // currently a dummy canID, adjust accordingly
+      if(msg.header.StdId == 0x123){
+
+        for(int i = 0; i < 12; i += 4){
+
+          TxData[0] = ADC_Array[i] & 0xFF;
+          TxData[1] = (ADC_Array[i] >> 8) & 0x0F;
+
+          TxData[2] = ADC_Array[i+1] & 0xFF;
+          TxData[3] = (ADC_Array[i+1] >> 8) & 0x0F;
+
+          TxData[4] = ADC_Array[i+2] & 0xFF;
+          TxData[5] = (ADC_Array[i+2] >> 8) & 0x0F;
+
+          TxData[6] = ADC_Array[i+3] & 0xFF;
+          TxData[7] = (ADC_Array[i+3] >> 8) & 0x0F;   
+          
+          // currently a dummy as well, so that the 3 can messages can have different IDs
+          TxHeader.DLC = 8;
+          TxHeader.StdId = 0x200 + (i/4);
+
+          HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox);
+        }
+      }
+      // return to og value
+      TxHeader.DLC = 2;
+      TxHeader.StdId = 0x200;
 	  }
 	  HAL_Delay(100);
-
 
 	  ADC_Update(ADC_Array);
 	  max = Max_Adc(ADC_Array);
 	  TxData[1] = adcValue & 0xFF;
-      TxData[0] = (adcValue >> 8) & 0x0F;
+    TxData[0] = (adcValue >> 8) & 0x0F;
 	  HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox);
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
