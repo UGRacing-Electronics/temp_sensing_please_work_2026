@@ -225,7 +225,17 @@ int main(void)
       Error_Handler();
   }
 
-  Filter.FilterIdHigh = (0x123 << 5);
+  // can ID filter dummy ver, change accordingly 
+  Filter.FilterBank = 0;
+  Filter.FilterMode = CAN_FILTERMODE_IDMASK;
+  Filter.FilterScale = CAN_FILTERSCALE_32BIT;
+  Filter.FilterIdHigh = (0x123 << 5); // Shift required for 11-bit Standard IDs
+  Filter.FilterIdLow = 0x0000;
+  Filter.FilterMaskIdHigh = 0xFFE0;   // Exact match mask
+  Filter.FilterMaskIdLow = 0x0000;
+  Filter.FilterFIFOAssignment = CAN_RX_FIFO0;
+  Filter.FilterActivation = ENABLE;
+
 //  if (HAL_CAN_Start(&hcan2) != HAL_OK)
 //   {
 //       Error_Handler();
