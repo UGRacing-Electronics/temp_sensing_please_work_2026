@@ -48,6 +48,7 @@
 /* USER CODE BEGIN PV */
 CAN_TxHeaderTypeDef TxHeader;	//Instance of the TxHeader structure
 CAN_RxHeaderTypeDef RxHeader;	//Instance of the RxHeader structure
+CAN_FilterTypeDef Filter;
 
 uint8_t TxData[8];				//TxData buffer
 uint8_t RxData[8];				//RxData buffer
@@ -223,6 +224,8 @@ int main(void)
   {
       Error_Handler();
   }
+
+  Filter.FilterIdHigh = (0x123 << 5);
 //  if (HAL_CAN_Start(&hcan2) != HAL_OK)
 //   {
 //       Error_Handler();
@@ -287,29 +290,25 @@ int main(void)
       //   TxData,
       //  &TxMailbox);
 
-      // currently a dummy canID, adjust accordingly
-      if(msg.header.StdId == 0x123){
+      for(int i = 0; i < 12; i += 4){
 
-        for(int i = 0; i < 12; i += 4){
+        TxData[0] = ADC_Array[i] & 0xFF;
+        TxData[1] = (ADC_Array[i] >> 8) & 0x0F;
 
-          TxData[0] = ADC_Array[i] & 0xFF;
-          TxData[1] = (ADC_Array[i] >> 8) & 0x0F;
+        TxData[2] = ADC_Array[i+1] & 0xFF;
+        TxData[3] = (ADC_Array[i+1] >> 8) & 0x0F;
 
-          TxData[2] = ADC_Array[i+1] & 0xFF;
-          TxData[3] = (ADC_Array[i+1] >> 8) & 0x0F;
+        TxData[4] = ADC_Array[i+2] & 0xFF;
+        TxData[5] = (ADC_Array[i+2] >> 8) & 0x0F;
 
-          TxData[4] = ADC_Array[i+2] & 0xFF;
-          TxData[5] = (ADC_Array[i+2] >> 8) & 0x0F;
+        TxData[6] = ADC_Array[i+3] & 0xFF;
+        TxData[7] = (ADC_Array[i+3] >> 8) & 0x0F;   
+        
+        // currently a dummy as well, so that the 3 can messages can have different IDs
+        TxHeader.DLC = 8;
+        TxHeader.StdId = 0x200 + (i/4);
 
-          TxData[6] = ADC_Array[i+3] & 0xFF;
-          TxData[7] = (ADC_Array[i+3] >> 8) & 0x0F;   
-          
-          // currently a dummy as well, so that the 3 can messages can have different IDs
-          TxHeader.DLC = 8;
-          TxHeader.StdId = 0x200 + (i/4);
-
-          HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox);
-        }
+        HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox);
       }
       // return to og value
       TxHeader.DLC = 2;
